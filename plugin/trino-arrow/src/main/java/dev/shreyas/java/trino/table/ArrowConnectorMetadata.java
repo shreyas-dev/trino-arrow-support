@@ -118,7 +118,7 @@ public class ArrowConnectorMetadata
                     for (Range range : ranges) {
                         Type type = range.getType();
                         System.out.println("range type: " + type.getTypeId().getId());
-                        if (type.getTypeId().getId().equals("varchar")) {
+                        if (type.getTypeId().getId().equals("varchar") || type.getTypeId().getId().equals("date")) {
                             if (range.getLowValue().isPresent()) {
                                 stringBuilder.append("PART_KEY_VAL");
                                 stringBuilder.append(">");
@@ -132,7 +132,7 @@ public class ArrowConnectorMetadata
                             }
                             if (range.getHighValue().isPresent()) {
                                 if (range.getLowValue().isPresent()) {
-                                    stringBuilder.append(" and ");
+                                    stringBuilder.append(" AND ");
                                 }
                                 stringBuilder.append("PART_KEY_VAL");
                                 stringBuilder.append("<");
@@ -140,17 +140,13 @@ public class ArrowConnectorMetadata
                                     stringBuilder.append("=");
                                 }
                                 stringBuilder.append("'");
-                                stringBuilder.append(" AND INTEGER_IDX=");
-                                stringBuilder.append(arrowColumnHandle.getOrdinalPosition());
-                                stringBuilder.append(" ");
                                 System.out.println("high value : " + range.getHighValue().get());
                                 System.out.println("high value : " + new String(((Slice) range.getHighValue().get()).getBytes(), Charset.defaultCharset()));
                                 stringBuilder.append(convertSliceToString((Slice) range.getHighValue().get()));
                                 stringBuilder.append("'");
                             }
                         }
-                        System.out.println("Type Id: " + type.getTypeId().getId());
-                        if (type.getTypeId().getId().equals("integer")) {
+                        else if (type.getTypeId().getId().equals("integer")) {
                             if (range.getLowValue().isPresent()) {
                                 stringBuilder.append("PART_KEY_VAL");
                                 stringBuilder.append(">");
