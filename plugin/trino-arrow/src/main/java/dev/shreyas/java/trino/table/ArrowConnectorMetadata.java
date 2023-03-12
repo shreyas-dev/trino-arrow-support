@@ -117,7 +117,7 @@ public class ArrowConnectorMetadata
                     StringBuilder stringBuilder = new StringBuilder();
                     for (Range range : ranges) {
                         Type type = range.getType();
-                        System.out.println("range type" + type.getTypeId().getId());
+                        System.out.println("range type: " + type.getTypeId().getId());
                         if (type.getTypeId().getId().equals("varchar")) {
                             if (range.getLowValue().isPresent()) {
                                 stringBuilder.append("PART_KEY_VAL");
@@ -180,13 +180,11 @@ public class ArrowConnectorMetadata
             });
             StringBuilder stringBuilder = new StringBuilder();
             for (String s : partValsQuery) {
-                if (stringBuilder.length() == 0) {
-                    stringBuilder.append(partValsQuery.get(0));
+                if (stringBuilder.length() != 0) {
+                    stringBuilder.append(" INTERSECT ");
                 }
-                else {
-                    stringBuilder.append(" AND ");
-                    stringBuilder.append(s);
-                }
+                stringBuilder.append("SELECT PART_ID FROM PARTITION_KEY_VALS WHERE ");
+                stringBuilder.append(s);
             }
             tableHandle.setPartitionQuery(stringBuilder.toString());
         });

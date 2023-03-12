@@ -172,6 +172,14 @@ public class HiveClient
         return cols.stream().collect(Collectors.toMap(ArrowColumnHandle::getColumnName, (arrowColumnHandle -> arrowColumnHandle)));
     }
 
+    private String getReadLocation(String hdfsPath)
+    {
+        if (arrowConfig.isDockerRun()) {
+            return hdfsPath.replace(arrowConfig.getHdfsWarehousePath(), arrowConfig.getUri());
+        }
+        return hdfsPath;
+    }
+
     public List<PartCol> getPartitions(ArrowTableHandle arrowTableHandle)
     {
         Map<Long, PartCol> partitionMap = new HashMap<>();
@@ -193,10 +201,7 @@ public class HiveClient
                         ResultSet resultSetForPartitions = getPartitionStmt.executeQuery(getPartitionQuery);
                         while (resultSetForPartitions.next()) {
                             long partId = resultSetForPartitions.getLong(1);
-                            String location = resultSetForPartitions.getString(2);
-                            if (arrowConfig.isDockerRun()) {
-                                location = location.replace("hdfs://localhost:9000/user/hive/warehouse", arrowConfig.getUri());
-                            }
+                            String location = getReadLocation(resultSetForPartitions.getString(2));
                             PartCol partCol = partitionMap.getOrDefault(partId, new PartCol(partId, location));
                             partCol.addPartKeyValue(resultSetForPartitions.getString(3), resultSetForPartitions.getObject(4));
                             partitionMap.put(partId, partCol);
@@ -210,10 +215,8 @@ public class HiveClient
                     try (Statement getNonPartitionedStmt = hiveMetaStoreClient.createStatement()) {
                         ResultSet resultSetForNonPartitioned = getNonPartitionedStmt.executeQuery(getNonPartitionedQuery);
                         resultSetForNonPartitioned.next();
-                        String location = resultSetForNonPartitioned.getString(1);
-                        if (arrowConfig.isDockerRun()) {
-                            location = location.replace("hdfs://localhost:9000/user/hive/warehouse", arrowConfig.getUri());
-                        }
+                        String location = getReadLocation(resultSetForNonPartitioned.getString(1));
+                        location = getReadLocation(location);
                         PartCol partCol = partitionMap.getOrDefault(-1L, new PartCol(-1L, location));
                         partitionMap.put(-1L, partCol);
                     }
@@ -229,16 +232,13 @@ public class HiveClient
                     " INNER JOIN SDS AS S ON S.SD_ID = P.SD_ID" +
                     " INNER JOIN PARTITION_KEYS AS PK ON PK.TBL_ID = P.TBL_ID AND PK.INTEGER_IDX = PKV.INTEGER_IDX" +
                     " WHERE P.TBL_ID=" + arrowTableHandle.getTableId() +
-                    " AND PKV.PART_ID IN (SELECT PART_ID FROM PARTITION_KEY_VALS WHERE " + arrowTableHandle.getPartitionQuery() + " )";
+                    " AND PKV.PART_ID IN ( " + arrowTableHandle.getPartitionQuery() + " )";
             System.out.println("Get Partition Query :" + getPartitionQuery);
             try (Statement getPartitionStmt = hiveMetaStoreClient.createStatement()) {
                 ResultSet resultSet = getPartitionStmt.executeQuery(getPartitionQuery);
                 while (resultSet.next()) {
                     long partId = resultSet.getLong(1);
-                    String location = resultSet.getString(2);
-                    if (arrowConfig.isDockerRun()) {
-                        location = location.replace("hdfs://localhost:9000/user/hive/warehouse", arrowConfig.getUri());
-                    }
+                    String location = getReadLocation(resultSet.getString(2));
                     PartCol partCol = partitionMap.getOrDefault(partId, new PartCol(partId, location));
                     partCol.addPartKeyValue(resultSet.getString(3), resultSet.getString(4));
                     partitionMap.put(partId, partCol);

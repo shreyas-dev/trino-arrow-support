@@ -18,7 +18,6 @@ import com.google.inject.Module;
 import com.google.inject.Scopes;
 import dev.shreyas.java.trino.client.ArrowClient;
 import dev.shreyas.java.trino.client.HiveClient;
-import dev.shreyas.java.trino.page.ArrowHivePageSourceProvider;
 import dev.shreyas.java.trino.page.ArrowPageSourceProvider;
 import dev.shreyas.java.trino.split.ArrowSplitManager;
 import dev.shreyas.java.trino.table.ArrowConnectorMetadata;
@@ -37,6 +36,5 @@ public class ArrowModule
         binder.bind(ArrowConnectorMetadata.class).in(Scopes.SINGLETON);
         binder.bind(ArrowSplitManager.class).in(Scopes.SINGLETON);
         binder.bind(ArrowPageSourceProvider.class).in(Scopes.SINGLETON);
-        binder.bind(ArrowHivePageSourceProvider.class).in(Scopes.SINGLETON);
     }
 }

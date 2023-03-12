@@ -26,6 +26,7 @@ public class ArrowConfig
     private String connectionPassword = "hivepassword";
     private String databaseName = "hive_metastore";
     private boolean dockerRun = true;
+    private String hdfsWarehousePath = "hdfs://localhost:9000/user/hive/warehouse";
 
     @Config("arrow.read.batch-size")
     @ConfigDescription("Batch size of arrow read")
@@ -91,6 +92,14 @@ public class ArrowConfig
         return this;
     }
 
+    @Config("arrow.hdfs.warehouse.path")
+    @ConfigDescription("Batch size of arrow read")
+    public ArrowConfig setHdfsWarehousePath(String hdfsWarehousePath)
+    {
+        this.hdfsWarehousePath = hdfsWarehousePath;
+        return this;
+    }
+
     public String getUri()
     {
         return uri;
@@ -129,5 +138,10 @@ public class ArrowConfig
     public boolean isDockerRun()
     {
         return dockerRun;
+    }
+
+    public String getHdfsWarehousePath()
+    {
+        return hdfsWarehousePath;
     }
 }
